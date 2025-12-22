@@ -1319,7 +1319,7 @@ async function loadCatalog(){
           throw new Error('Ожидался массив, получен: ' + typeof root);
         }
         
-        const folders = root.filter(x => x.type === 'dir');
+        const folders = root.filter(x => x.type === 'dir' && x.name !== 'about-me');
         console.log('Найдено папок:', folders.length, folders.map(f => f.name));
         
         if(folders.length === 0){
