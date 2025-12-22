@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Ozerov Ilya Gallery</title>
+
+  <style>
+
+    :root{
+
+      --bg:#0d1117; --fg:#eaf1fa; --muted:#9aa7bb;
+
+      --line:rgba(255,255,255,.1); --acc:#60a5fa;
+
+      --glass:rgba(255,255,255,.08); --blur:22px;
+
+      --shadow:0 20px 40px rgba(0,0,0,.5);
+
+    }
+
+    @media (prefers-color-scheme: light){
+
+      :root{
+
+        --bg:#f5f7fc; --fg:#0b0e14; --muted:#5a6175;
+
+        --line:rgba(0,0,0,.08); --acc:#2563eb;
+
+        --glass:rgba(255,255,255,.55); --blur:18px;
+
+        --shadow:0 12px 28px rgba(0,0,0,.15);
+
+      }
+
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{height:100%;scroll-behavior:smooth}
+
+    body{
+
+      margin:0;
+
+      background-color:var(--bg);               /* единая заливка */
+
+      background-image:radial-gradient(800px 600px at 30% 30%, rgba(255,255,255,.04), rgba(0,0,0,.08) 80%);
+
+      background-blend-mode:overlay;            /* мягкий объём без полос */
+
+      color:var(--fg);
+
+      font:15px/1.6 "Inter",-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+
+      -webkit-font-smoothing:antialiased;
+
+    }
+
+    /* микрошум для устранения banding */
+
+    body::before{
+
+      content:"";
+
+      position:fixed; inset:0; z-index:-2;
+
+      background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAAB+OugAAAABJRU5ErkJggg==");
+
+      background-size:200px 200px;
+
+      opacity:.05;
+
+      mix-blend-mode:overlay;
+
+      pointer-events:none;
+
+    }
+
+
+
+    /* ==== ФОН: случайная картинка из каталога ==== */
+
+    .bg{position:fixed; inset:0; z-index:-1; overflow:hidden; background:var(--bg);}
+
+    .bg img{
+
+      position:absolute; left:50%; top:50%;
+
+      transform:translate(-50%,-50%) scale(1.25);
+
+      width:100vw; height:100vh; object-fit:cover;
+
+      filter:blur(20px) brightness(0.85) saturate(120%);
+
+      opacity:0.6; pointer-events:none;
+
+      animation:bgmove 45s ease-in-out infinite alternate;
+
+      will-change:transform;
+
+    }
+
+    @keyframes bgmove{
+
+      0%{transform:translate(-50%,-50%) scale(1.25);}
+
+      100%{transform:translate(-50%,-50%) scale(1.32);}
+
+    }
+
+
+
+    /* ==== ХЭДЕР ==== */
+
+    .topbar{
+
+      position:fixed;top:0;left:0;right:0;height:64px;
+
+      display:flex;align-items:center;justify-content:space-between;
+
+      padding:0 24px;
+
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+
+      background:var(--glass);
+
+      border-bottom:1px solid var(--line);
+
+      box-shadow:0 4px 20px rgba(0,0,0,.2);
+
+      z-index:50;
+
+      cursor:pointer;
+
+      transition:all .3s ease;
+
+    }
+    
+    .topbar:hover{
+      background:rgba(255,255,255,.12);
+    }
+
+    .brand{
+
+      font-weight:700;font-size:19px;letter-spacing:.5px;
+
+      text-shadow:0 2px 8px rgba(255,255,255,.2);
+
+      user-select:none;
+
+      background:linear-gradient(135deg, var(--fg), rgba(255,255,255,.8));
+
+      -webkit-background-clip:text;
+
+      -webkit-text-fill-color:transparent;
+
+      background-clip:text;
+
+    }
+
+
+
+    /* ==== КОЛЛЕКЦИИ ==== */
+
+    .collections{
+
+      position:fixed;left:20px;top:80px;
+
+      display:flex;flex-direction:column;gap:12px;z-index:20;
+
+      transition:transform .5s cubic-bezier(0.4, 0, 0.2, 1), opacity .4s ease, max-height .5s ease;
+
+      overflow:hidden;
+
+      transform:translateY(0);
+
+      opacity:1;
+
+    }
+
+    .collections.collapsed{
+      transform:translateY(-100%);
+      opacity:0;
+      max-height:0;
+      pointer-events:none;
+    }
+
+    /* Кнопка для разворачивания меню */
+    .menu-toggle-btn{
+      position:fixed;left:20px;top:80px;
+      z-index:21;
+      display:none;
+      align-items:center;justify-content:center;
+      width:44px;height:44px;
+      border-radius:50%;
+      background:var(--glass);
+      border:1px solid var(--line);
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:all .3s ease;
+      opacity:0;
+      transform:scale(0.8);
+    }
+
+    .menu-toggle-btn.visible{
+      display:flex;
+      opacity:1;
+      transform:scale(1);
+    }
+
+    .menu-toggle-btn:hover{
+      background:rgba(255,255,255,.18);
+      transform:scale(1.1);
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+    }
+
+    .menu-toggle-btn svg{
+      width:20px;height:20px;
+      stroke:var(--fg);
+      stroke-width:2;
+      fill:none;
+      transition:transform .3s ease;
+    }
+
+    .menu-toggle-btn:hover svg{
+      transform:translateY(2px);
+    }
+
+    .pill{
+
+      position:relative;
+
+      display:inline-flex;align-items:center;justify-content:center;
+
+      padding:10px 18px;border-radius:999px;font-weight:500;color:var(--fg);
+
+      background:var(--glass);border:1px solid var(--line);
+
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+
+      box-shadow:inset 0 1px 2px rgba(255,255,255,.15),var(--shadow);
+
+      cursor:pointer;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      font-size:14px;
+
+      white-space:nowrap;
+
+    }
+
+    .pill:hover{
+      transform:translateY(-2px) scale(1.05);
+      background:rgba(255,255,255,.15);
+      box-shadow:inset 0 1px 2px rgba(255,255,255,.2),0 8px 24px rgba(0,0,0,.4);
+    }
+
+    .pill.active{
+
+      background:linear-gradient(135deg,rgba(255,255,255,.28),rgba(255,255,255,.08));
+
+      box-shadow:0 0 14px var(--acc);
+
+      border:1px solid rgba(255,255,255,.5);
+
+      border-radius:18px;            /* мягкое скругление для выбранной */
+
+      transition:all .25s ease;
+
+    }
+
+
+
+    /* ==== ГРИД ==== */
+
+    .grid{
+
+      padding:100px 24px 32px 24px;
+
+      max-width:1600px;margin:0 auto;
+
+      display:grid;gap:24px;
+
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+
+    }
+
+    .card{
+
+      position:relative;overflow:hidden;cursor:pointer;
+
+      border-radius:20px;background:var(--glass);
+
+      border:1px solid var(--line);box-shadow:var(--shadow);
+
+      transition:all .4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    }
+
+    .card:hover{
+      transform:translateY(-8px) scale(1.03);
+      box-shadow:0 24px 48px rgba(0,0,0,.7);
+      border-color:rgba(255,255,255,.3);
+    }
+
+    .card img{
+
+      width:100%;height:300px;object-fit:cover;display:block;
+
+      filter:brightness(0.95);
+
+      transition:transform 1.2s ease,filter .6s ease;
+
+    }
+
+    .card:hover img{transform:scale(1.08);filter:brightness(1.05);}
+
+    .caption{
+
+      position:absolute;left:0;right:0;bottom:0;
+
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+
+      background:linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,.4));
+
+      padding:16px 18px;border-top:1px solid rgba(255,255,255,.1);
+
+      color:#fff;
+
+      transform:translateY(100%);
+
+      transition:transform .3s ease;
+
+    }
+    
+    .card:hover .caption{
+      transform:translateY(0);
+    }
+
+    .title{font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,.5);font-size:15px;margin-bottom:6px;}
+
+    .meta{font-size:12px;opacity:.9;margin-top:3px;text-shadow:0 1px 2px rgba(0,0,0,.4);line-height:1.4;}
+
+    .size-info{font-size:11px;opacity:.85;margin-top:2px;font-weight:500;}
+
+    .materials-info{font-size:11px;opacity:.8;margin-top:2px;font-style:italic;}
+
+
+
+    /* ==== ВЬЮВЕР ==== */
+
+    .viewer{
+      position:fixed;inset:0;z-index:100;display:none;
+      background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+      opacity:0;transition:opacity .3s ease;
+      touch-action:pan-y pinch-zoom;
+    }
+    
+    .viewer.active{
+      display:block;opacity:1;
+    }
+    
+    /* Блокируем клики на элементы под модальным окном когда viewer открыт */
+    .viewer.active ~ *,
+    .viewer.active ~ * .card {
+      pointer-events:none;
+    }
+    
+    /* Альтернативный способ для браузеров без поддержки :has() */
+    .viewer-blocking .grid .card,
+    .viewer-blocking .collections {
+      pointer-events:none;
+    }
+
+
+    .slide{
+      position:absolute;inset:64px 0 0 0;
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+      pointer-events:auto;
+      padding:20px;
+      box-sizing:border-box;
+    }
+
+    .slide img{
+      max-width:calc(100% - 40px);
+      max-height:calc(100% - 40px);
+      width:auto;
+      height:auto;
+      object-fit:contain;
+      transition:transform 120s ease;
+      will-change:transform;
+      margin:auto;
+      display:block;
+    }
+
+    .v-caption{
+      position:fixed;left:20px;bottom:20px;right:20px;
+      display:flex;justify-content:space-between;gap:14px;
+      align-items:flex-end;z-index:120;
+      pointer-events:auto;
+      max-width:calc(100vw - 40px);
+    }
+
+    .glass{
+
+      border:1px solid var(--line);background:var(--glass);
+
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+
+      box-shadow:var(--shadow);
+
+      border-radius:18px;padding:16px 18px;
+
+      color:var(--fg);
+
+      max-width:600px;
+
+      flex:1;
+
+    }
+    
+    #v-meta {
+      line-height:1.6;
+      font-size:13px;
+    }
+    
+    #v-meta div:first-child {
+      margin-top:0;
+    }
+
+    .btn{
+
+      padding:10px 16px;border-radius:12px;
+
+      border:1px solid var(--line);
+
+      background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(180%);
+
+      box-shadow:var(--shadow);
+
+      cursor:pointer;transition:all .3s ease;
+
+      color:var(--fg);
+
+      font-size:14px;
+
+      font-weight:500;
+
+    }
+
+    .btn:hover{
+      background:rgba(255,255,255,.2);
+      transform:scale(1.08);
+      box-shadow:0 8px 20px rgba(0,0,0,.4);
+    }
+
+    .arrow{
+      position:fixed;top:50%;transform:translateY(-50%);z-index:110;
+      opacity:.9;
+      transition:opacity .3s ease;
+      pointer-events:auto;
+    }
+    .arrow.left{left:20px}
+    .arrow.right{right:20px}
+    .arrow:hover{opacity:1;}
+
+
+
+    @media(max-width:768px){
+      .collections{left:12px;top:72px;gap:8px;}
+      .menu-toggle-btn{left:12px;top:72px;}
+      .grid{
+        grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+        gap:16px;
+        padding:88px 12px 24px 12px;
+      }
+      .card img{height:220px}
+      .card{border-radius:18px;}
+      .topbar{height:56px;padding:0 16px;}
+      .brand{font-size:16px;}
+      /* На мобильных caption всегда виден */
+      .card .caption{
+        transform:translateY(0);
+      }
+      .slide{
+        inset:56px 0 0 0;
+        padding:12px;
+      }
+      .slide img{
+        max-width:calc(100% - 24px);
+        max-height:calc(100% - 24px);
+      }
+    }
+    
+    @media(max-width:480px){
+      .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+      .card img{height:180px}
+      .caption{padding:12px 14px;}
+      .title{font-size:14px;}
+      .meta,.size-info,.materials-info{font-size:11px;}
+    }
+
+
+
+    /* ==== FULLSCREEN ПРЕЗЕНТАЦИЯ ПРИ БЕЗДЕЙСТВИИ ==== */
+
+    .presenter{
+
+      position:fixed; inset:0; z-index:120; display:none;
+
+      background:rgba(0,0,0,.96);
+
+      backdrop-filter:blur(6px);
+
+    }
+
+    .presenter.active{ display:block; }
+
+    .presenter img{
+
+      position:absolute; left:50%; top:50%;
+
+      transform:translate(-50%,-50%) scale(1);
+
+      max-width:100vw; max-height:100vh; object-fit:contain;
+
+      transition: transform 24s ease;
+
+      will-change: transform;
+
+      filter:none;
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- ФОН (случайная работа из каталога) -->
+
+  <div class="bg"><img id="bgImg" alt="background"></div>
+
+
+
+  <div class="topbar" id="topbar">
+
+    <div class="brand">Ozerov Ilya Gallery</div>
+
+  </div>
+
+
+
+  <div class="collections" id="collections"></div>
+  
+  <!-- Кнопка для разворачивания меню -->
+  <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Показать меню коллекций">
+    <svg viewBox="0 0 24 24">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+  </button>
+
+  <main id="view-grid" class="grid"></main>
+
+
+
+  <section id="viewer" class="viewer" aria-hidden="true">
+
+    <div class="arrow left"><button class="btn" id="prev">←</button></div>
+
+    <div class="arrow right"><button class="btn" id="next">→</button></div>
+
+    <div class="slide"><img id="big" alt="artwork"/></div>
+
+    <div class="v-caption">
+
+      <div class="glass">
+
+        <div id="v-title" class="title"></div>
+
+        <div id="v-meta" class="meta"></div>
+
+      </div>
+
+      <button class="btn" id="close">✕</button>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ПРЕЗЕНТАЦИЯ (авто после 35 сек бездействия) -->
+
+  <section id="presenter" class="presenter" aria-hidden="true">
+
+    <img id="prsImg" alt="presentation">
+
+  </section>
+
+
+
+<script>
+
+/* === GITHUB И ЛОКАЛЬНЫЕ ФАЙЛЫ === */
+
+// Настройки GitHub репозитория
+// ВАЖНО: Обновите эти значения на ваши данные репозитория!
+const GH={
+  owner:'Hazpay',  // Замените на ваш GitHub username
+  repo:'Ozerov Gallery',  // Замените на название вашего репозитория (без пробелов, используйте дефисы: Ozerov-Gallery)
+  branch:'main',  // или 'master' - название ветки
+  dir:'Ozerov'  // Папка с изображениями в репозитории
+};
+
+const $=s=>document.querySelector(s);
+
+const topbar=$('#topbar'), colBox=$('#collections'), grid=$('#view-grid');
+const menuToggleBtn=$('#menuToggleBtn');
+
+const viewer=$('#viewer'), big=$('#big'), vTitle=$('#v-title'), vMeta=$('#v-meta');
+
+const bgImg=$('#bgImg');
+
+
+
+/* презентация */
+
+const presenter = document.getElementById('presenter');
+
+const prsImg    = document.getElementById('prsImg');
+
+
+
+let catalog={},flat=[],current=0;
+let metadataMap={}; // Карта номеров -> размеры и материалы
+
+
+
+const parseName=f=>{const b=f.replace(/\.[^.]+$/,'');let t=b,s='',m='';if(b.includes('__'))[t,s,m]=b.split('__');else if(b.includes(' - '))[t,s,m]=b.split(' - ');return{title:t||b,size:s||'',materials:m||''}};
+
+const isImg=f=>/\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f);
+
+
+
+/* === Загрузка метаданных из CSV === */
+
+// Встроенные данные из CSV (чтобы избежать проблем с CORS при file://)
+const csvData = `1,70*70,"canvas, oil"
+2,80*60,"canvas, oil"
+3,90*60,"canvas, oil"
+4,100*80,"canvas, oil"
+5,100*100,"сanvas, hammerate, oil"
+6,100*100,"canvas, oil"
+7,90*60,"canvas, oil"
+8,120*80,"canvas, oil"
+9,50*50,"canvas, oil"
+10,80*60,"canvas, oil"
+11,80*55,"canvas, oil"
+12,90*60,"canvas, oil"
+13,80*40,"сanvas, oil pensils, acrylik"
+14,50*50,"canvas, oil, oil pensils"
+15,50*50,"canvas, oil, oil pensils"
+16,50*50,"canvas, oil, oil pensils"
+17,80*60,"canvas, oil"
+18,80*40,"сanvas, acrylik"
+19,100*80,"сanvas, acrylik"
+20,70*70,"canvas, oil"
+21,120*80,"сanvas, acrylik"
+22,30*30,"canvas, oil pensils"
+23,80*40,"canvas, oil"
+24,108*55,"board, frame, oil"
+25,30*20,"canvas, oil pensils"
+26,triptych 47*47,"canvas, oil pensils, pen"
+27,70*70,"plastic, playing cards, glue"
+28,100*70,"plastic, playing cards, glue"
+29,70*50,"plastic, playing cards, glue"
+30,50*30,"plastic, playing cards, glue"
+31,50*30,"plastic, playing cards, glue"
+32,30*20,"plastic, playing cards, glue"
+33,120*80,"canvas, oil"
+34,120*80,"canvas, oil"
+35,80*60,"сanvas, acrylik"
+36,80*60,"canvas, oil"
+37,40*40,"сanvas, acrylik"
+38,80*50,"canvas, oil"
+39,27 cm,"fired clay, glaze, oil"
+40,70*50,"сanvas, acrylik"
+41,80*50,"canvas, oil"
+42,90*70,"canvas, oil"
+43,70*50,"сanvas, hammerate, oil"
+44,25 cm,"paper, glue, oil pencil"
+45,30 cm,"fired clay, glaze, oil"
+46,80*50,"сanvas, acrylik"
+47,100*70,"canvas, oil"
+48,120*80,"сanvas, acrylik"
+49,80*40,"canvas, oil, oil pensils"
+50,30*20,"paper, putty"
+51,90*60,"canvas, oil"
+52,80*50,"сanvas, acrylik"
+53,90*60,"board, oil"
+54,90*60,"board, oil"
+55,90*60,"board, oil"
+56,80*60,"canvas, oil"
+57,47*47,"canvas, oil pensils, pen"
+58,47*47,"canvas, oil pensils, pen"
+59,47*47,"canvas, oil pensils, pen"`;
+
+async function loadMetadata(){
+
+  try{
+
+    console.log('Начинаю обработку метаданных...');
+
+    let text = csvData; // По умолчанию используем встроенные данные
+
+    // Если не file:// протокол, пытаемся загрузить с GitHub
+    if(window.location.protocol !== 'file:'){
+      try{
+        const csvUrl = getCsvUrl();
+        const response = await fetch(csvUrl);
+        if(response.ok){
+          text = await response.text();
+          console.log('CSV загружен с GitHub');
+        }
+      }catch(e){
+        console.warn('Не удалось загрузить CSV с GitHub, используем встроенные данные:', e);
+      }
+    }
+
+    console.log('Данные загружены, длина:', text.length, 'символов');
+
+    const lines=text.split('\n').filter(l=>l.trim());
+
+    console.log('Всего строк в CSV:', lines.length);
+
+    let parsedCount=0;
+
+    lines.forEach((line, lineIndex)=>{
+
+      line=line.trim();
+
+      if(!line) return;
+
+      // Парсим CSV: номер, размер, материалы
+      // Формат: 1,70*70,"canvas, oil"
+
+      let parsed = false;
+
+      // Вариант 1: с кавычками вокруг материалов (точное совпадение)
+      let match=line.match(/^(\d+)\s*,\s*([^,]+?)\s*,\s*"(.*)"\s*$/);
+
+      if(match){
+
+        const num=parseInt(match[1],10);
+
+        const size=match[2].trim();
+
+        const materials=match[3].trim();
+
+        if(!isNaN(num) && num > 0){
+
+          metadataMap[num]={size,materials};
+
+          parsedCount++;
+
+          parsed = true;
+
+          // Отладка для первых 5 записей
+          if(parsedCount <= 5){
+            console.log(`  ✓ Строка ${lineIndex + 1}: Загружено #${num}: размер="${size}", материалы="${materials}"`);
+          }
+
+        }
+
+      }
+
+      // Вариант 2: если первый вариант не сработал, парсим вручную
+      if(!parsed){
+
+        const firstComma = line.indexOf(',');
+        const secondComma = line.indexOf(',', firstComma + 1);
+
+        if(firstComma > 0 && secondComma > firstComma){
+
+          const numStr = line.substring(0, firstComma).trim();
+          const num = parseInt(numStr, 10);
+
+          if(!isNaN(num) && num > 0){
+
+            const size = line.substring(firstComma + 1, secondComma).trim();
+
+            // Материалы - все после второй запятой, убираем кавычки
+            let materials = line.substring(secondComma + 1).trim();
+            materials = materials.replace(/^["']|["']$/g, '').trim();
+
+            metadataMap[num]={size,materials};
+
+            parsedCount++;
+
+            parsed = true;
+
+            // Отладка для первых 5 записей
+            if(parsedCount <= 5){
+              console.log(`  ✓ Строка ${lineIndex + 1} (вариант 2): Загружено #${num}: размер="${size}", материалы="${materials}"`);
+            }
+
+          }
+
+        }
+
+      }
+
+      // Если не удалось распарсить, выводим предупреждение для первых 10 строк
+      if(!parsed && lineIndex < 10){
+        console.warn(`  ⚠ Строка ${lineIndex + 1} не распарсена: "${line}"`);
+      }
+
+    });
+
+    console.log(`✓ Загружено метаданных: ${parsedCount} записей из ${lines.length} строк`);
+
+    // Показываем примеры загруженных данных для отладки
+
+    if(parsedCount > 0){
+
+      const sampleKeys = Object.keys(metadataMap).slice(0, 5).map(k => parseInt(k, 10));
+
+      console.log('Примеры загруженных номеров:', sampleKeys);
+
+      sampleKeys.forEach(k => {
+
+        console.log(`  Пример #${k}: размер="${metadataMap[k].size}", материалы="${metadataMap[k].materials}"`);
+
+      });
+
+    }else{
+
+      console.error('⚠ ВНИМАНИЕ: Не удалось распарсить ни одной записи из CSV!');
+
+      console.log('Первые 5 строк для отладки:');
+
+      lines.slice(0, 5).forEach((line, idx) => {
+
+        console.log(`  Строка ${idx + 1}: "${line}"`);
+
+      });
+
+    }
+
+  }catch(e){
+
+    console.error('❌ Ошибка загрузки метаданных:', e);
+
+    console.error('Детали ошибки:', e.message, e.stack);
+
+  }
+
+}
+
+
+
+// Структура локальных папок с изображениями
+
+const localFolders = {
+
+  'astronauts': ['13.png', '14.jpeg', '15.jpeg', '16.jpeg', '17.jpg', '18.jpg', '19.jpeg'],
+
+  'cards': ['27.jpg', '28.jpg', '29.jpg', '30.jpg', '31.jpg', '32.jpg'],
+
+  'flowers': ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.jpg', '10.jpeg', '11.jpeg', '12.jpeg'],
+
+  'others': ['33.png', '34.png', '35.png', '36.jpg', '37.png', '38.jpg', '39.jpg', '40.jpg', '41.jpg', '42.jpg', '43.jpg', '44.png', '45.png', '46.jpg', '47.jpg', '48.jpg', '49.jpg', '50.jpeg', '51.png', '52.jpeg', '53.jpg', '54.jpeg', '55.jpeg', '56.jpg'],
+
+  'rus text': ['20.png', '21.jpeg', '22.png', '23.png', '24.jpg', '25.jpeg', '26.png', '57.jpg', '58.jpg', '59.jpg']
+
+};
+
+
+
+/* === Рандомный фон из каталога === */
+
+function setRandomBackground(){
+
+  const all = Object.values(catalog).flat();
+
+  if(!all.length) return;
+
+  const item = all[Math.floor(Math.random()*all.length)];
+
+  bgImg.src = item.raw || item.path;
+
+}
+
+
+
+/* === Загрузка каталога (GitHub API или локальные файлы) === */
+
+async function loadCatalog(){
+
+  try{
+
+    // Сначала загружаем метаданные (не критично, если не загрузится)
+
+    await loadMetadata();
+
+  }catch(e){
+
+    console.warn('Не удалось загрузить метаданные, продолжаем без них:', e);
+
+  }
+
+  try{
+
+    // Пытаемся загрузить через GitHub API (если не file://)
+    if(window.location.protocol !== 'file:'){
+      try{
+        console.log('Загрузка каталога через GitHub API...');
+        const root = await ghList(GH.dir);
+        const folders = root.filter(x => x.type === 'dir');
+        
+        for(const f of folders){
+          const list = await ghList(`${GH.dir}/${f.name}`);
+          catalog[f.name] = list
+            .filter(x => x.type === 'file' && isImg(x.name))
+            .map(x => {
+              const meta = parseName(x.name);
+              const path = `${GH.dir}/${f.name}/${x.name}`;
+              const numMatch = x.name.match(/^(\d+)/);
+              const num = numMatch ? parseInt(numMatch[1], 10) : null;
+              const csvMeta = num && metadataMap[num] ? metadataMap[num] : null;
+              
+              return {
+                collection: f.name,
+                name: x.name,
+                number: num,
+                title: meta.title || (num ? `#${num}` : x.name.replace(/\.[^.]+$/, '')),
+                size: csvMeta?.size || meta.size || '',
+                materials: csvMeta?.materials || meta.materials || '',
+                path: path,
+                raw: getImageUrl(path)
+              };
+            });
+        }
+        
+        console.log('Каталог загружен через GitHub API');
+        buildUI();
+        setRandomBackground();
+        armIdleAfterBuild();
+        initMenuAutoCollapse();
+        return;
+      }catch(e){
+        console.warn('Не удалось загрузить через GitHub API, используем локальные данные:', e);
+      }
+    }
+
+    // Fallback: используем локальную структуру
+    console.log('Использование локальной структуры файлов...');
+    for(const [folderName, files] of Object.entries(localFolders)){
+
+      catalog[folderName] = files
+
+      .filter(f => isImg(f))
+
+      .map(fileName => {
+
+        const meta = parseName(fileName);
+
+        const path = `Ozerov/${folderName}/${fileName}`;
+
+        // Извлекаем номер из имени файла
+
+        const numMatch = fileName.match(/^(\d+)/);
+
+        const num = numMatch ? parseInt(numMatch[1], 10) : null;
+
+        // Получаем метаданные из CSV если есть
+
+        const csvMeta = num && metadataMap[num] ? metadataMap[num] : null;
+
+        const item = {
+
+          collection: folderName,
+
+          name: fileName,
+
+          number: num,
+
+          title: meta.title || (num ? `#${num}` : fileName.replace(/\.[^.]+$/, '')),
+
+          size: csvMeta?.size || meta.size || '',
+
+          materials: csvMeta?.materials || meta.materials || '',
+
+          path: path,
+
+          raw: getImageUrl(path)  // Используем функцию для получения правильного URL
+
+        };
+
+        // Отладка для первых элементов каждой коллекции
+        const itemIndex = catalog[folderName] ? catalog[folderName].length : 0;
+        if(itemIndex < 2 && num){ // Показываем первые 2 элемента каждой коллекции
+          if(csvMeta){
+            console.log(`✓ Картина #${num} (${fileName}): размер="${item.size}", материалы="${item.materials}"`);
+          }else{
+            console.warn(`✗ Метаданные не найдены для картины #${num} (${fileName}). Доступные номера в CSV:`, Object.keys(metadataMap).slice(0, 10).join(', '));
+          }
+        }
+
+        return item;
+
+      });
+
+    }
+
+    buildUI();
+
+    setRandomBackground();           // фон после сборки каталога
+
+    armIdleAfterBuild();             // запустить отсчёт бездействия
+    
+    initMenuAutoCollapse();          // автоматическое сворачивание меню через 4 секунды
+
+  }catch(e){
+
+    console.error('Ошибка при построении каталога:', e);
+
+    throw e; // Пробрасываем ошибку дальше
+
+  }
+
+}
+
+
+
+/* === UI === */
+
+function buildUI(){
+
+  colBox.innerHTML='';
+
+  colBox.appendChild(pill('All',()=>show('ALL'),true));
+
+  Object.keys(catalog).sort((a,b)=>a.localeCompare(b,'ru')).forEach(c=>colBox.appendChild(pill(c,()=>show(c))));
+
+  show('ALL');
+  
+  // Убеждаемся, что меню развернуто при первой загрузке
+  menuCollapsed = false;
+  colBox.classList.remove('collapsed');
+  menuToggleBtn.classList.remove('visible');
+
+}
+
+function pill(lbl,on,act){const e=document.createElement('div');e.className='pill'+(act?' active':'');e.textContent=lbl;
+
+  e.onclick=()=>{document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));e.classList.add('active');on();};return e;}
+
+function show(scope){
+
+  viewer.classList.remove('active');
+  
+  // При смене коллекции автоматически сворачиваем меню через 4 секунды
+  if(!menuCollapsed){
+    scheduleMenuAutoCollapse();
+  }
+
+  const items=[]; 
+  if(scope==='ALL'){
+    Object.values(catalog).forEach(a=>items.push(...a));
+  } else {
+    items.push(...(catalog[scope]||[]));
+  }
+
+  flat=items;
+
+  if(items.length === 0){
+    grid.innerHTML=`<div style="grid-column:1/-1;padding:60px;text-align:center;background:var(--glass);border-radius:18px;backdrop-filter:blur(var(--blur));box-shadow:var(--shadow);">
+      <p style="color:var(--muted);font-size:16px;">Коллекция пуста</p>
+    </div>`;
+    return;
+  }
+
+  // Отладка: проверяем данные первых элементов
+  if(items.length > 0 && items[0]){
+    console.log('Первый элемент для отображения:', {
+      number: items[0].number,
+      size: items[0].size,
+      materials: items[0].materials,
+      title: items[0].title
+    });
+  }
+
+  grid.innerHTML=items.map((it,i)=>{
+
+    // Формируем информацию для отображения
+    const parts = [];
+    if(it.collection) parts.push(`<div class="meta">${it.collection}</div>`);
+    if(it.size && it.size.trim()) parts.push(`<div class="size-info">${it.size}</div>`);
+    if(it.materials && it.materials.trim()) parts.push(`<div class="materials-info">${it.materials}</div>`);
+    const infoHTML = parts.length > 0 ? parts.join('') : '';
+
+    return `
+
+    <article class="card" data-idx="${i}">
+
+      <img loading="lazy" src="${it.raw || it.path}" alt="${it.title || it.name}">
+
+      <div class="caption">
+        <div class="title">${it.title || it.name}</div>
+        ${infoHTML}
+      </div>
+
+    </article>`;
+
+  }).join('');
+
+  grid.querySelectorAll('.card').forEach(c=>{
+    c.onclick=(e)=>{
+      if(isViewerOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      openViewer(+c.dataset.idx);
+    };
+    // Дополнительная защита для touch событий на мобильных
+    c.addEventListener('touchend',(e)=>{
+      if(isViewerOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },{passive:false});
+  });
+
+}
+
+
+
+/* === Viewer === */
+
+function openViewer(i){
+  current=(i+flat.length)%flat.length;
+  render();
+  isViewerOpen = true;
+  viewer.classList.add('active');
+  document.body.classList.add('viewer-blocking');
+  resetIdleTimer();
+  // Блокируем скролл body при открытом viewer
+  document.body.style.overflow='hidden';
+}
+
+function closeViewer(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  isViewerOpen = false;
+  viewer.classList.remove('active');
+  document.body.classList.remove('viewer-blocking');
+  big.src='';
+  resetIdleTimer();
+  // Восстанавливаем скролл
+  document.body.style.overflow='';
+}
+
+function render(){
+  const it=flat[current];
+  if(!it) return;
+  big.src=it.raw || it.path;
+  vTitle.textContent=it.title || it.name;
+  
+  // Формируем метаданные с разделением на строки
+  const metaParts = [];
+  if(it.collection) metaParts.push(it.collection);
+  if(it.size) metaParts.push(`Размер: ${it.size}`);
+  if(it.materials) metaParts.push(`Материалы: ${it.materials}`);
+  
+  vMeta.innerHTML = metaParts.length > 0 
+    ? metaParts.map(p => `<div style="margin-top:4px;">${p}</div>`).join('')
+    : '';
+}
+
+function next(){current=(current+1)%flat.length;render();resetIdleTimer();}
+
+function prev(){current=(current-1+flat.length)%flat.length;render();resetIdleTimer();}
+
+document.getElementById('next').onclick=(e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  next();
+};
+document.getElementById('prev').onclick=(e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  prev();
+};
+document.getElementById('close').onclick=(e)=>{
+  closeViewer(e);
+};
+
+// Закрытие при клике на фон viewer
+viewer.addEventListener('click',(e)=>{
+  if(e.target===viewer){
+    closeViewer(e);
+  }
+});
+
+// Предотвращаем закрытие при клике на содержимое
+const slide=document.querySelector('.slide');
+const vCaption=document.querySelector('.v-caption');
+if(slide) {
+  slide.addEventListener('click',e=>e.stopPropagation());
+  slide.addEventListener('touchend',e=>e.stopPropagation());
+}
+if(vCaption) {
+  vCaption.addEventListener('click',e=>e.stopPropagation());
+  vCaption.addEventListener('touchend',e=>e.stopPropagation());
+}
+
+// Дополнительная защита: блокируем клики на карточки когда viewer открыт
+let isViewerOpen = false;
+
+// Keyboard navigation
+document.addEventListener('keydown',(e)=>{
+  if(!viewer.classList.contains('active')) return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') next();
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp') prev();
+  else if(e.key==='Escape') closeViewer();
+});
+
+
+
+/* === Сворачивание меню (как было) === */
+
+/* === Управление меню коллекций === */
+
+let menuCollapsed = false;
+let menuAutoCollapseTimer = null;
+
+function collapseMenu(){
+  if(menuCollapsed) return;
+  menuCollapsed = true;
+  colBox.classList.add('collapsed');
+  // Показываем кнопку после завершения анимации сворачивания
+  setTimeout(() => {
+    menuToggleBtn.classList.add('visible');
+  }, 500);
+  resetIdleTimer();
+}
+
+function expandMenu(){
+  if(!menuCollapsed) return;
+  menuCollapsed = false;
+  menuToggleBtn.classList.remove('visible');
+  colBox.classList.remove('collapsed');
+  resetIdleTimer();
+  // Автоматически сворачиваем через 4 секунды
+  scheduleMenuAutoCollapse();
+}
+
+function scheduleMenuAutoCollapse(){
+  clearTimeout(menuAutoCollapseTimer);
+  menuAutoCollapseTimer = setTimeout(() => {
+    collapseMenu();
+  }, 4000);
+}
+
+// Обработчик клика на кнопку разворачивания
+menuToggleBtn.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  expandMenu();
+};
+
+// Автоматическое сворачивание меню через 4 секунды после загрузки
+function initMenuAutoCollapse(){
+  scheduleMenuAutoCollapse();
+}
+
+
+
+/* ===== Презентация при бездействии (35 сек) ===== */
+
+let idleTimer = null;
+
+let presSlideTimer = null;
+
+let isPresenting = false;
+
+
+const IDLE_MS = 35000;          // 35 секунд до старта презентации
+const SLIDE_MS = 8000;          // длительность одного кадра (анимация ~24s)
+
+const MIN_SCALE = 1.02, MAX_SCALE = 1.20;
+
+
+
+function allItemsFlat(){ try { return Object.values(catalog).flat(); } catch { return []; } }
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+
+
+/* только zoom (без смещений) */
+
+function animateKen(el){
+
+  const startScale = rand(MIN_SCALE, MAX_SCALE);
+
+  const endScale   = rand(MIN_SCALE, MAX_SCALE);
+
+
+
+  el.style.transition = 'none';
+
+  el.style.transform  = `translate(-50%,-50%) scale(${startScale})`;
+
+  requestAnimationFrame(()=>{
+
+    requestAnimationFrame(()=>{
+
+      el.style.transition = `transform 24s ease`;
+
+      el.style.transform  = `translate(-50%,-50%) scale(${endScale})`;
+
+    });
+
+  });
+
+}
+
+
+
+function showNextPresSlide(){
+
+  const items = allItemsFlat();
+
+  if(!items.length){ stopPresentation(); return; }
+
+  const it = pick(items);
+
+  prsImg.onload = ()=> animateKen(prsImg);
+
+  prsImg.src = it.raw || it.path;
+
+  clearTimeout(presSlideTimer);
+
+  presSlideTimer = setTimeout(showNextPresSlide, SLIDE_MS);
+
+}
+
+
+
+function startPresentation(){
+
+  if(isPresenting || viewer.classList.contains('active')) return;
+
+  isPresenting = true;
+
+  presenter.classList.add('active');
+
+  showNextPresSlide();
+
+}
+
+
+
+function stopPresentation(){
+
+  if(!isPresenting) return;
+
+  isPresenting = false;
+
+  presenter.classList.remove('active');
+
+  prsImg.src = '';
+
+  clearTimeout(presSlideTimer);
+
+  presSlideTimer = null;
+
+}
+
+
+
+function resetIdleTimer(){
+
+  stopPresentation();
+
+  clearTimeout(idleTimer);
+
+  idleTimer = setTimeout(startPresentation, IDLE_MS);
+
+}
+
+
+
+/* события активности пользователя */
+
+['mousemove','mousedown','keydown','touchstart','scroll','wheel'].forEach(evt=>{
+
+  window.addEventListener(evt, resetIdleTimer, {passive:true});
+
+});
+
+
+
+/* старт таймера после первичной отрисовки */
+
+function armIdleAfterBuild(){
+
+  clearTimeout(idleTimer);
+
+  idleTimer = setTimeout(startPresentation, IDLE_MS);
+
+}
+
+
+
+/* === INIT === */
+
+// Загружаем каталог (локальные файлы + метаданные из CSV)
+
+(async function(){
+
+  try {
+
+    await loadCatalog();
+
+  } catch(e){
+
+  console.error('Ошибка загрузки:', e);
+
+  const errorMsg = document.createElement('div');
+  errorMsg.style.cssText = 'grid-column:1/-1;padding:60px;text-align:center;background:var(--glass);border-radius:18px;backdrop-filter:blur(var(--blur));box-shadow:var(--shadow);';
+  errorMsg.innerHTML = `
+    <h2 style="color:var(--fg);margin-bottom:12px;">Ошибка загрузки</h2>
+    <p style="color:var(--muted);font-size:14px;line-height:1.6;">
+      Не удалось загрузить каталог изображений.<br>
+      Убедитесь, что папка <b>Ozerov</b> существует и содержит изображения.
+    </p>
+    <p style="color:var(--muted);font-size:12px;margin-top:16px;opacity:.7;">
+      ${e.message || 'Неизвестная ошибка'}
+    </p>
+  `;
+  grid.appendChild(errorMsg);
+
+  }
+
+})();
+
+</script>
+
+</body>
