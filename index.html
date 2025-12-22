@@ -518,10 +518,28 @@
       background:rgba(0,0,0,.96);
 
       backdrop-filter:blur(6px);
+      
+      touch-action:pan-y pinch-zoom;
+      cursor:pointer;
 
     }
 
-    .presenter.active{ display:block; }
+    .presenter.active{ 
+      display:block;
+    }
+    
+    /* Блокируем клики на карточки когда presenter активен */
+    body:has(.presenter.active) .grid .card,
+    .presenter.active ~ * .grid .card {
+      pointer-events:none;
+      touch-action:none;
+    }
+    
+    /* Альтернативный способ для браузеров без поддержки :has() */
+    .presenter-blocking .grid .card {
+      pointer-events:none;
+      touch-action:none;
+    }
 
     .presenter img{
 
@@ -635,6 +653,20 @@ const bgImg=$('#bgImg');
 /* презентация */
 
 const presenter = document.getElementById('presenter');
+
+// Обработчик клика на presenter для закрытия
+presenter.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  stopPresentation();
+}, {passive: false});
+
+// Также обрабатываем touch события для мобильных
+presenter.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  stopPresentation();
+}, {passive: false});
 
 const prsImg    = document.getElementById('prsImg');
 
@@ -1198,18 +1230,28 @@ function show(scope){
 
   grid.querySelectorAll('.card').forEach(c=>{
     c.onclick=(e)=>{
-      if(isViewerOpen) {
+      // Блокируем клики если viewer или presenter открыты
+      if(isViewerOpen || isPresenting) {
         e.preventDefault();
         e.stopPropagation();
-        return;
+        return false;
       }
       openViewer(+c.dataset.idx);
     };
     // Дополнительная защита для touch событий на мобильных
     c.addEventListener('touchend',(e)=>{
-      if(isViewerOpen) {
+      if(isViewerOpen || isPresenting) {
         e.preventDefault();
         e.stopPropagation();
+        return false;
+      }
+    },{passive:false});
+    // Также блокируем touchstart для предотвращения двойного нажатия
+    c.addEventListener('touchstart',(e)=>{
+      if(isPresenting) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
       }
     },{passive:false});
   });
@@ -1442,6 +1484,9 @@ function startPresentation(){
   isPresenting = true;
 
   presenter.classList.add('active');
+  
+  // Блокируем клики на карточки
+  document.body.classList.add('presenter-blocking');
 
   showNextPresSlide();
 
@@ -1456,6 +1501,12 @@ function stopPresentation(){
   isPresenting = false;
 
   presenter.classList.remove('active');
+  
+  // Блокируем клики на карточки еще на 400ms после закрытия (для мобильных)
+  // чтобы предотвратить случайное открытие картинки под presenter
+  setTimeout(() => {
+    document.body.classList.remove('presenter-blocking');
+  }, 400);
 
   prsImg.src = '';
 
