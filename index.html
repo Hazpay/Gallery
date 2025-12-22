@@ -154,7 +154,7 @@
 
       user-select:none;
 
-      background:linear-gradient(135deg, var(--fg), rgba(255,255,255,.8));
+      background:linear-gradient(135deg, var(--fg), rgba(200,200,200,.9));
 
       -webkit-background-clip:text;
 
@@ -181,6 +181,14 @@
       transform:translateY(0);
 
       opacity:1;
+      
+      /* Фон с скругленными углами и блюром */
+      background:var(--glass);
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px;
+      box-shadow:var(--shadow), inset 0 0 20px rgba(255,255,255,.05);
 
     }
 
