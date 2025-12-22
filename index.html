@@ -1587,8 +1587,8 @@ function render(){
   // Формируем метаданные с разделением на строки
   const metaParts = [];
   if(it.collection) metaParts.push(capitalizeFirst(it.collection));
-  if(it.size) metaParts.push(`Size: ${it.size}`);
-  if(it.materials) metaParts.push(`Materials: ${it.materials}`);
+  if(it.size) metaParts.push(it.size);
+  if(it.materials) metaParts.push(it.materials);
   
   vMeta.innerHTML = metaParts.length > 0 
     ? metaParts.map(p => `<div style="margin-top:4px;">${p}</div>`).join('')
