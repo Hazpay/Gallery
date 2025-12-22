@@ -651,6 +651,32 @@ const parseName=f=>{const b=f.replace(/\.[^.]+$/,'');let t=b,s='',m='';if(b.incl
 
 const isImg=f=>/\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f);
 
+// Определяем базовый путь (если файл в подпапке Gallery)
+const getBasePath=()=>{
+  const pathname = window.location.pathname;
+  const hostname = window.location.hostname;
+  
+  console.log('Определение базового пути:', {pathname, hostname});
+  
+  // Если это GitHub Pages
+  if(hostname.includes('github.io')){
+    // Если URL содержит /Gallery/ или /gallery/, значит файл в подпапке
+    if(pathname.includes('/Gallery/') || pathname.includes('/gallery/')){
+      console.log('Базовый путь: Gallery/');
+      return 'Gallery/';
+    }
+    // Если путь заканчивается на /Gallery или /gallery
+    if(pathname.endsWith('/Gallery') || pathname.endsWith('/gallery')){
+      console.log('Базовый путь: Gallery/');
+      return 'Gallery/';
+    }
+  }
+  
+  // Для локальной разработки или если файл в корне
+  console.log('Базовый путь: (корень)');
+  return '';
+};
+
 // Функция для получения URL изображения (GitHub или локально)
 const getImageUrl=(path)=>{
   // Если открыто через file://, используем локальные пути
@@ -659,7 +685,15 @@ const getImageUrl=(path)=>{
   }
   // Иначе используем GitHub raw URL
   const repoName = GH.repo.replace(/\s+/g, '-');
-  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${path}`;
+  const basePath = getBasePath();
+  const fullUrl = `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${basePath}${path}`;
+  // Отладка только для первых нескольких вызовов
+  if(!getImageUrl._debugCount) getImageUrl._debugCount = 0;
+  if(getImageUrl._debugCount < 3){
+    console.log(`URL изображения #${getImageUrl._debugCount + 1}: ${fullUrl}`);
+    getImageUrl._debugCount++;
+  }
+  return fullUrl;
 };
 
 // Функция для получения URL CSV (GitHub или локально)
@@ -668,16 +702,20 @@ const getCsvUrl=()=>{
     return 'materials-sizes.csv';
   }
   const repoName = GH.repo.replace(/\s+/g, '-');
-  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/materials-sizes.csv`;
+  const basePath = getBasePath();
+  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${basePath}materials-sizes.csv`;
 };
 
 // GitHub API функция
 async function ghList(path){
   // Правильно кодируем название репозитория (убираем пробелы)
   const repoName = GH.repo.replace(/\s+/g, '-');
-  const api=`https://api.github.com/repos/${GH.owner}/${encodeURIComponent(repoName)}/contents/${encodeURIComponent(path)}?ref=${GH.branch}&per_page=100`;
+  const basePath = getBasePath();
+  const fullPath = basePath + path;
+  const api=`https://api.github.com/repos/${GH.owner}/${encodeURIComponent(repoName)}/contents/${encodeURIComponent(fullPath)}?ref=${GH.branch}&per_page=100`;
   
   console.log('GitHub API запрос:', api);
+  console.log('Базовый путь:', basePath, 'Полный путь:', fullPath);
   
   const r=await fetch(api,{headers:{'Accept':'application/vnd.github+json'}});
   
