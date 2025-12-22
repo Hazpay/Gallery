@@ -1355,13 +1355,22 @@ async function loadCatalog(){
 
 /* === UI === */
 
+// Функция для капитализации первой буквы
+function capitalizeFirst(str){
+  if(!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 function buildUI(){
 
   colBox.innerHTML='';
 
   colBox.appendChild(pill('All',()=>show('ALL'),true));
 
-  Object.keys(catalog).sort((a,b)=>a.localeCompare(b,'ru')).forEach(c=>colBox.appendChild(pill(c,()=>show(c))));
+  Object.keys(catalog).sort((a,b)=>a.localeCompare(b,'ru')).forEach(c=>{
+    const displayName = capitalizeFirst(c);
+    colBox.appendChild(pill(displayName,()=>show(c)));
+  });
 
   show('ALL');
   
@@ -1415,7 +1424,7 @@ function show(scope){
 
     // Формируем информацию для отображения
     const parts = [];
-    if(it.collection) parts.push(`<div class="meta">${it.collection}</div>`);
+    if(it.collection) parts.push(`<div class="meta">${capitalizeFirst(it.collection)}</div>`);
     if(it.size && it.size.trim()) parts.push(`<div class="size-info">${it.size}</div>`);
     if(it.materials && it.materials.trim()) parts.push(`<div class="materials-info">${it.materials}</div>`);
     const infoHTML = parts.length > 0 ? parts.join('') : '';
@@ -1509,7 +1518,7 @@ function render(){
   
   // Формируем метаданные с разделением на строки
   const metaParts = [];
-  if(it.collection) metaParts.push(it.collection);
+  if(it.collection) metaParts.push(capitalizeFirst(it.collection));
   if(it.size) metaParts.push(`Size: ${it.size}`);
   if(it.materials) metaParts.push(`Materials: ${it.materials}`);
   
