@@ -325,6 +325,67 @@
 
     }
 
+    /* ==== ABOUT ME МОДУЛЬ ==== */
+    
+    .about-me{
+      grid-column:1/-1;
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:24px;
+      padding:24px;
+      background:var(--glass);
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(var(--blur)) saturate(180%);
+      transition:all .4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .about-me:hover{
+      transform:translateY(-4px);
+      box-shadow:0 12px 40px rgba(0,0,0,.6);
+    }
+    
+    .about-me-image{
+      width:100%;
+      height:auto;
+      border-radius:16px;
+      object-fit:cover;
+      aspect-ratio:1;
+      box-shadow:0 4px 16px rgba(0,0,0,.3);
+    }
+    
+    .about-me-content{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      color:var(--fg);
+    }
+    
+    .about-me-title{
+      font-size:28px;
+      font-weight:700;
+      margin-bottom:16px;
+      background:linear-gradient(135deg, var(--fg), rgba(255,255,255,.8));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    
+    .about-me-text{
+      font-size:16px;
+      line-height:1.8;
+      color:var(--muted);
+    }
+    
+    .about-me-text p{
+      margin:0 0 12px 0;
+    }
+    
+    .about-me-text p:last-child{
+      margin-bottom:0;
+    }
+
     .card:hover{
       transform:translateY(-8px) scale(1.03);
       box-shadow:0 24px 48px rgba(0,0,0,.7);
@@ -689,6 +750,29 @@
         bottom:12px;
         right:68px;
         max-width:calc(100vw - 80px);
+      }
+      
+      /* About Me модуль на мобильных */
+      .about-me{
+        grid-template-columns:1fr;
+        gap:20px;
+        padding:20px;
+      }
+      
+      .about-me-image{
+        width:100%;
+        max-width:100%;
+        aspect-ratio:1;
+      }
+      
+      .about-me-title{
+        font-size:24px;
+        margin-bottom:12px;
+      }
+      
+      .about-me-text{
+        font-size:15px;
+        line-height:1.7;
       }
       
       .slide{
@@ -1420,7 +1504,21 @@ function show(scope){
     });
   }
 
-  grid.innerHTML=items.map((it,i)=>{
+  // About Me модуль (только для коллекции "All")
+  const aboutMeHTML = scope === 'ALL' ? `
+    <article class="about-me">
+      <img src="${getImageUrl('Ozerov/about-me.jpg')}" alt="About Me" class="about-me-image" onerror="this.style.display='none'">
+      <div class="about-me-content">
+        <h2 class="about-me-title">About Me</h2>
+        <div class="about-me-text">
+          <p>Добро пожаловать в мою галерею! Здесь собраны мои работы, созданные в разные периоды творчества.</p>
+          <p>Каждая картина отражает мой взгляд на мир и передает эмоции через цвет и форму.</p>
+        </div>
+      </div>
+    </article>
+  ` : '';
+
+  grid.innerHTML=aboutMeHTML + items.map((it,i)=>{
 
     // Формируем информацию для отображения
     const parts = [];
