@@ -613,13 +613,11 @@
 /* === GITHUB И ЛОКАЛЬНЫЕ ФАЙЛЫ === */
 
 // Настройки GitHub репозитория
-// ВАЖНО: Обновите эти значения на ваши данные репозитория!
-// Если название репозитория содержит пробелы, GitHub автоматически заменяет их на дефисы
-// Например: "Ozerov Gallery" становится "Ozerov-Gallery" в URL
+// Репозиторий: https://github.com/Hazpay/Gallery
 const GH={
-  owner:'Hazpay',  // Замените на ваш GitHub username
-  repo:'Ozerov-Gallery',  // ВАЖНО: Используйте название БЕЗ пробелов (GitHub заменяет пробелы на дефисы)
-  branch:'main',  // или 'master' - название ветки
+  owner:'Hazpay',
+  repo:'Gallery',  // Название репозитория
+  branch:'main',
   dir:'Ozerov'  // Папка с изображениями в репозитории
 };
 
@@ -651,29 +649,10 @@ const parseName=f=>{const b=f.replace(/\.[^.]+$/,'');let t=b,s='',m='';if(b.incl
 
 const isImg=f=>/\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f);
 
-// Определяем базовый путь (если файл в подпапке Gallery)
+// Определяем базовый путь
+// Файлы находятся в корне репозитория, поэтому базовый путь пустой
 const getBasePath=()=>{
-  const pathname = window.location.pathname;
-  const hostname = window.location.hostname;
-  
-  console.log('Определение базового пути:', {pathname, hostname});
-  
-  // Если это GitHub Pages
-  if(hostname.includes('github.io')){
-    // Если URL содержит /Gallery/ или /gallery/, значит файл в подпапке
-    if(pathname.includes('/Gallery/') || pathname.includes('/gallery/')){
-      console.log('Базовый путь: Gallery/');
-      return 'Gallery/';
-    }
-    // Если путь заканчивается на /Gallery или /gallery
-    if(pathname.endsWith('/Gallery') || pathname.endsWith('/gallery')){
-      console.log('Базовый путь: Gallery/');
-      return 'Gallery/';
-    }
-  }
-  
-  // Для локальной разработки или если файл в корне
-  console.log('Базовый путь: (корень)');
+  // Файлы в корне репозитория, базовый путь не нужен
   return '';
 };
 
@@ -684,9 +663,9 @@ const getImageUrl=(path)=>{
     return path;
   }
   // Иначе используем GitHub raw URL
-  const repoName = GH.repo.replace(/\s+/g, '-');
-  const basePath = getBasePath();
-  const fullUrl = `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${basePath}${path}`;
+  // Репозиторий: https://github.com/Hazpay/Gallery
+  // Файлы в корне, поэтому путь просто: Ozerov/...
+  const fullUrl = `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/${GH.branch}/${path}`;
   // Отладка только для первых нескольких вызовов
   if(!getImageUrl._debugCount) getImageUrl._debugCount = 0;
   if(getImageUrl._debugCount < 3){
@@ -701,21 +680,17 @@ const getCsvUrl=()=>{
   if(window.location.protocol === 'file:'){
     return 'materials-sizes.csv';
   }
-  const repoName = GH.repo.replace(/\s+/g, '-');
-  const basePath = getBasePath();
-  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${basePath}materials-sizes.csv`;
+  // CSV файл в корне репозитория
+  return `https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/${GH.branch}/materials-sizes.csv`;
 };
 
 // GitHub API функция
 async function ghList(path){
-  // Правильно кодируем название репозитория (убираем пробелы)
-  const repoName = GH.repo.replace(/\s+/g, '-');
-  const basePath = getBasePath();
-  const fullPath = basePath + path;
-  const api=`https://api.github.com/repos/${GH.owner}/${encodeURIComponent(repoName)}/contents/${encodeURIComponent(fullPath)}?ref=${GH.branch}&per_page=100`;
+  // Репозиторий: https://github.com/Hazpay/Gallery
+  // Файлы в корне, путь напрямую: Ozerov или Ozerov/папка
+  const api=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(path)}?ref=${GH.branch}&per_page=100`;
   
   console.log('GitHub API запрос:', api);
-  console.log('Базовый путь:', basePath, 'Полный путь:', fullPath);
   
   const r=await fetch(api,{headers:{'Accept':'application/vnd.github+json'}});
   
