@@ -346,13 +346,19 @@
       box-shadow:0 12px 40px rgba(0,0,0,.6);
     }
     
-    .about-me-image{
+    .about-me-image-wrapper{
       width:260px;
       height:300px;
+      flex-shrink:0;
+    }
+    
+    .about-me-image{
+      width:100%;
+      height:100%;
       border-radius:16px;
       object-fit:cover;
       box-shadow:0 4px 16px rgba(0,0,0,.3);
-      flex-shrink:0;
+      display:block;
     }
     
     .about-me-content{
@@ -759,10 +765,14 @@
         padding:20px;
       }
       
-      .about-me-image{
+      .about-me-image-wrapper{
         width:100%;
         height:220px;
-        max-width:100%;
+      }
+      
+      .about-me-image{
+        width:100%;
+        height:100%;
         object-fit:cover;
       }
       
@@ -1508,7 +1518,9 @@ function show(scope){
   // About Me модуль (только для коллекции "All")
   const aboutMeHTML = scope === 'ALL' ? `
     <article class="about-me">
-      <img src="${getImageUrl('Ozerov/about-me.jpg')}" alt="About Me" class="about-me-image" onerror="this.style.display='none'">
+      <div class="about-me-image-wrapper">
+        <img src="${getImageUrl('Ozerov/about-me/about-me.jpg')}" alt="About Me" class="about-me-image" onerror="this.style.display='none'">
+      </div>
       <div class="about-me-content">
         <h2 class="about-me-title">About Me</h2>
         <div class="about-me-text">
