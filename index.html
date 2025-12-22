@@ -182,13 +182,27 @@
 
       opacity:1;
       
-      /* Фон с скругленными углами и блюром */
-      background:var(--glass);
-      backdrop-filter:blur(var(--blur)) saturate(180%);
-      border:1px solid var(--line);
+      /* Liquid glass эффект */
+      background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.12) 0%,
+        rgba(255,255,255,.08) 50%,
+        rgba(255,255,255,.05) 100%
+      );
+      backdrop-filter:blur(24px) saturate(200%);
+      -webkit-backdrop-filter:blur(24px) saturate(200%);
+      border:1px solid rgba(255,255,255,.2);
+      border-top:1px solid rgba(255,255,255,.3);
+      border-left:1px solid rgba(255,255,255,.25);
       border-radius:20px;
-      padding:16px;
-      box-shadow:var(--shadow), inset 0 0 20px rgba(255,255,255,.05);
+      padding:8px;
+      box-shadow:
+        0 8px 32px rgba(0,0,0,.4),
+        0 2px 8px rgba(0,0,0,.2),
+        inset 0 1px 0 rgba(255,255,255,.3),
+        inset 0 -1px 0 rgba(255,255,255,.1),
+        inset 1px 0 0 rgba(255,255,255,.2),
+        inset -1px 0 0 rgba(0,0,0,.1);
 
     }
 
