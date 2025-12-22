@@ -1447,8 +1447,32 @@ function show(scope){
   const items=[]; 
   if(scope==='ALL'){
     Object.values(catalog).forEach(a=>items.push(...a));
+    // Сортировка для ALL: строго по порядку от 1 до последнего
+    items.sort((a, b) => {
+      // Элементы с номерами идут первыми
+      if (a.number !== null && b.number !== null) {
+        return a.number - b.number;
+      }
+      // Элементы без номера идут в конец
+      if (a.number === null && b.number !== null) return 1;
+      if (a.number !== null && b.number === null) return -1;
+      // Если оба без номера, оставляем исходный порядок
+      return 0;
+    });
   } else {
     items.push(...(catalog[scope]||[]));
+    // Сортировка для коллекций: от меньшего к большему по номеру
+    items.sort((a, b) => {
+      // Элементы с номерами идут первыми, отсортированные по возрастанию
+      if (a.number !== null && b.number !== null) {
+        return a.number - b.number;
+      }
+      // Элементы без номера идут в конец
+      if (a.number === null && b.number !== null) return 1;
+      if (a.number !== null && b.number === null) return -1;
+      // Если оба без номера, оставляем исходный порядок
+      return 0;
+    });
   }
 
   flat=items;
