@@ -427,8 +427,8 @@
       position:fixed;
       right:20px;
       bottom:20px;
-      width:48px;
-      height:48px;
+      width:56px;
+      height:56px;
       border-radius:50%;
       border:1px solid var(--line);
       background:var(--glass);
@@ -443,11 +443,20 @@
       align-items:center;
       justify-content:center;
       padding:0;
+      font-size:28px;
+      font-weight:bold;
+      font-family:serif;
+      line-height:1;
     }
     
-    .info-btn svg{
-      width:24px;
-      height:24px;
+    .info-btn::before{
+      content:'i';
+      transition:all .3s ease;
+    }
+    
+    .info-btn.active::before{
+      content:'!';
+      transform:rotate(0deg);
     }
     
     .info-btn:hover{
@@ -458,7 +467,6 @@
     
     .info-btn.active{
       background:rgba(255,255,255,.3);
-      transform:rotate(180deg);
     }
     
     /* Блок с информацией */
@@ -580,45 +588,6 @@
       box-shadow:0 8px 20px rgba(0,0,0,.4);
     }
     
-    /* Кнопка информации */
-    .info-btn{
-      position:fixed;
-      right:20px;
-      bottom:20px;
-      width:48px;
-      height:48px;
-      border-radius:50%;
-      border:1px solid var(--line);
-      background:var(--glass);
-      backdrop-filter:blur(var(--blur)) saturate(180%);
-      box-shadow:var(--shadow);
-      cursor:pointer;
-      transition:all .3s ease;
-      color:var(--fg);
-      z-index:120;
-      pointer-events:auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:0;
-    }
-    
-    .info-btn svg{
-      width:24px;
-      height:24px;
-    }
-    
-    .info-btn:hover{
-      background:rgba(255,255,255,.2);
-      transform:scale(1.1);
-      box-shadow:0 8px 20px rgba(0,0,0,.4);
-    }
-    
-    .info-btn.active{
-      background:rgba(255,255,255,.3);
-      transform:rotate(180deg);
-    }
-    
     /* Кнопка закрытия */
     .close-btn{
       position:fixed;
@@ -707,13 +676,9 @@
       .info-btn{
         right:12px;
         bottom:12px;
-        width:44px;
-        height:44px;
-      }
-      
-      .info-btn svg{
-        width:22px;
-        height:22px;
+        width:52px;
+        height:52px;
+        font-size:26px;
       }
       
       /* Кнопка закрытия в мобильной версии */
@@ -848,12 +813,7 @@
     <div class="slide"><img id="big" alt="artwork"/></div>
 
     <!-- Кнопка информации -->
-    <button class="info-btn" id="infoBtn" aria-label="Показать информацию">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 16v-4M12 8h.01"/>
-      </svg>
-    </button>
+    <button class="info-btn" id="infoBtn" aria-label="Показать информацию"></button>
     
     <!-- Кнопка закрытия -->
     <button class="close-btn" id="close" aria-label="Закрыть">✕</button>
