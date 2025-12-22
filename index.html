@@ -1780,7 +1780,8 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* только zoom (без смещений) */
 
-// Функция для расчета максимального масштаба, при котором изображение не обрезается
+// Функция для расчета максимального масштаба с отступом 10% от большего размера
+// Гарантирует, что изображение не обрезается ни при каких обстоятельствах
 function getMaxSafeScale(img){
   if(!img || !img.complete || img.naturalWidth === 0 || img.naturalHeight === 0){
     return MAX_SCALE; // Если изображение еще не загружено, возвращаем максимальный масштаб
@@ -1791,12 +1792,33 @@ function getMaxSafeScale(img){
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   
-  // Рассчитываем масштаб для ширины и высоты
+  // Определяем больший размер изображения (ширина или высота)
+  const isWidthLarger = imgWidth >= imgHeight;
+  
+  // Отступ 10% от границ экрана (20% общее уменьшение доступного пространства)
+  const paddingPercent = 0.1; // 10%
+  
+  let scaleWithPadding, scaleWithoutPadding;
+  
+  if(isWidthLarger){
+    // Если ширина больше - применяем отступ 10% к ширине viewport
+    const availableWidth = viewportWidth * (1 - paddingPercent * 2);
+    scaleWithPadding = availableWidth / imgWidth;
+  } else {
+    // Если высота больше - применяем отступ 10% к высоте viewport
+    const availableHeight = viewportHeight * (1 - paddingPercent * 2);
+    scaleWithPadding = availableHeight / imgHeight;
+  }
+  
+  // Проверяем, что при таком масштабе изображение не обрезается по другому размеру
+  // Рассчитываем масштаб без отступа для обоих размеров (гарантия отсутствия обрезки)
   const scaleForWidth = viewportWidth / imgWidth;
   const scaleForHeight = viewportHeight / imgHeight;
+  scaleWithoutPadding = Math.min(scaleForWidth, scaleForHeight);
   
-  // Берем минимальный масштаб, чтобы изображение полностью помещалось
-  const maxSafeScale = Math.min(scaleForWidth, scaleForHeight);
+  // Берем минимальный из масштабов, чтобы гарантировать отсутствие обрезки
+  // Это означает: стремимся к отступу 10%, но не обрезаем ни при каких обстоятельствах
+  const maxSafeScale = Math.min(scaleWithPadding, scaleWithoutPadding);
   
   // Ограничиваем максимальным значением из констант
   return Math.min(maxSafeScale, MAX_SCALE);
