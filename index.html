@@ -614,9 +614,11 @@
 
 // Настройки GitHub репозитория
 // ВАЖНО: Обновите эти значения на ваши данные репозитория!
+// Если название репозитория содержит пробелы, GitHub автоматически заменяет их на дефисы
+// Например: "Ozerov Gallery" становится "Ozerov-Gallery" в URL
 const GH={
   owner:'Hazpay',  // Замените на ваш GitHub username
-  repo:'Ozerov Gallery',  // Замените на название вашего репозитория (без пробелов, используйте дефисы: Ozerov-Gallery)
+  repo:'Ozerov-Gallery',  // ВАЖНО: Используйте название БЕЗ пробелов (GitHub заменяет пробелы на дефисы)
   branch:'main',  // или 'master' - название ветки
   dir:'Ozerov'  // Папка с изображениями в репозитории
 };
@@ -649,7 +651,44 @@ const parseName=f=>{const b=f.replace(/\.[^.]+$/,'');let t=b,s='',m='';if(b.incl
 
 const isImg=f=>/\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f);
 
+// Функция для получения URL изображения (GitHub или локально)
+const getImageUrl=(path)=>{
+  // Если открыто через file://, используем локальные пути
+  if(window.location.protocol === 'file:'){
+    return path;
+  }
+  // Иначе используем GitHub raw URL
+  const repoName = GH.repo.replace(/\s+/g, '-');
+  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/${path}`;
+};
 
+// Функция для получения URL CSV (GitHub или локально)
+const getCsvUrl=()=>{
+  if(window.location.protocol === 'file:'){
+    return 'materials-sizes.csv';
+  }
+  const repoName = GH.repo.replace(/\s+/g, '-');
+  return `https://raw.githubusercontent.com/${GH.owner}/${encodeURIComponent(repoName)}/${GH.branch}/materials-sizes.csv`;
+};
+
+// GitHub API функция
+async function ghList(path){
+  // Правильно кодируем название репозитория (убираем пробелы)
+  const repoName = GH.repo.replace(/\s+/g, '-');
+  const api=`https://api.github.com/repos/${GH.owner}/${encodeURIComponent(repoName)}/contents/${encodeURIComponent(path)}?ref=${GH.branch}&per_page=100`;
+  
+  console.log('GitHub API запрос:', api);
+  
+  const r=await fetch(api,{headers:{'Accept':'application/vnd.github+json'}});
+  
+  if(!r.ok) {
+    const errorText = await r.text().catch(() => '');
+    console.error('GitHub API ошибка:', r.status, r.statusText, errorText);
+    throw new Error(`GitHub API: ${r.status} ${r.statusText}`);
+  }
+  
+  return r.json();
+}
 
 /* === Загрузка метаданных из CSV === */
 
@@ -924,41 +963,61 @@ async function loadCatalog(){
     if(window.location.protocol !== 'file:'){
       try{
         console.log('Загрузка каталога через GitHub API...');
-        const root = await ghList(GH.dir);
-        const folders = root.filter(x => x.type === 'dir');
+        console.log('Настройки:', GH);
         
-        for(const f of folders){
-          const list = await ghList(`${GH.dir}/${f.name}`);
-          catalog[f.name] = list
-            .filter(x => x.type === 'file' && isImg(x.name))
-            .map(x => {
-              const meta = parseName(x.name);
-              const path = `${GH.dir}/${f.name}/${x.name}`;
-              const numMatch = x.name.match(/^(\d+)/);
-              const num = numMatch ? parseInt(numMatch[1], 10) : null;
-              const csvMeta = num && metadataMap[num] ? metadataMap[num] : null;
-              
-              return {
-                collection: f.name,
-                name: x.name,
-                number: num,
-                title: meta.title || (num ? `#${num}` : x.name.replace(/\.[^.]+$/, '')),
-                size: csvMeta?.size || meta.size || '',
-                materials: csvMeta?.materials || meta.materials || '',
-                path: path,
-                raw: getImageUrl(path)
-              };
-            });
+        const root = await ghList(GH.dir);
+        console.log('Получен корневой каталог, элементов:', root.length);
+        
+        if(!Array.isArray(root)){
+          throw new Error('Ожидался массив, получен: ' + typeof root);
         }
         
-        console.log('Каталог загружен через GitHub API');
+        const folders = root.filter(x => x.type === 'dir');
+        console.log('Найдено папок:', folders.length, folders.map(f => f.name));
+        
+        if(folders.length === 0){
+          throw new Error('Не найдено папок в каталоге Ozerov');
+        }
+        
+        for(const f of folders){
+          console.log(`Загрузка папки: ${f.name}`);
+          const list = await ghList(`${GH.dir}/${f.name}`);
+          const images = list.filter(x => x.type === 'file' && isImg(x.name));
+          console.log(`  Найдено изображений: ${images.length}`);
+          
+          catalog[f.name] = images.map(x => {
+            const meta = parseName(x.name);
+            const path = `${GH.dir}/${f.name}/${x.name}`;
+            const numMatch = x.name.match(/^(\d+)/);
+            const num = numMatch ? parseInt(numMatch[1], 10) : null;
+            const csvMeta = num && metadataMap[num] ? metadataMap[num] : null;
+            
+            return {
+              collection: f.name,
+              name: x.name,
+              number: num,
+              title: meta.title || (num ? `#${num}` : x.name.replace(/\.[^.]+$/, '')),
+              size: csvMeta?.size || meta.size || '',
+              materials: csvMeta?.materials || meta.materials || '',
+              path: path,
+              raw: getImageUrl(path)
+            };
+          });
+        }
+        
+        const totalImages = Object.values(catalog).reduce((sum, arr) => sum + arr.length, 0);
+        console.log(`✓ Каталог загружен через GitHub API. Всего изображений: ${totalImages}`);
+        
         buildUI();
         setRandomBackground();
         armIdleAfterBuild();
         initMenuAutoCollapse();
         return;
       }catch(e){
-        console.warn('Не удалось загрузить через GitHub API, используем локальные данные:', e);
+        console.error('❌ Ошибка загрузки через GitHub API:', e);
+        console.error('Детали:', e.message, e.stack);
+        // Продолжаем с локальными данными
+        console.log('Переход на локальные данные...');
       }
     }
 
