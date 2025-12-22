@@ -1780,13 +1780,39 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* только zoom (без смещений) */
 
+// Функция для расчета максимального масштаба, при котором изображение не обрезается
+function getMaxSafeScale(img){
+  if(!img || !img.complete || img.naturalWidth === 0 || img.naturalHeight === 0){
+    return MAX_SCALE; // Если изображение еще не загружено, возвращаем максимальный масштаб
+  }
+  
+  const imgWidth = img.naturalWidth;
+  const imgHeight = img.naturalHeight;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  // Рассчитываем масштаб для ширины и высоты
+  const scaleForWidth = viewportWidth / imgWidth;
+  const scaleForHeight = viewportHeight / imgHeight;
+  
+  // Берем минимальный масштаб, чтобы изображение полностью помещалось
+  const maxSafeScale = Math.min(scaleForWidth, scaleForHeight);
+  
+  // Ограничиваем максимальным значением из констант
+  return Math.min(maxSafeScale, MAX_SCALE);
+}
+
 function animateKen(el){
 
-  const startScale = rand(MIN_SCALE, MAX_SCALE);
-
-  const endScale   = rand(MIN_SCALE, MAX_SCALE);
-
-
+  // Рассчитываем максимальный безопасный масштаб
+  const maxSafeScale = getMaxSafeScale(el);
+  
+  // Ограничиваем startScale и endScale максимальным безопасным масштабом
+  const safeMinScale = Math.min(MIN_SCALE, maxSafeScale);
+  const safeMaxScale = maxSafeScale;
+  
+  const startScale = Math.min(rand(safeMinScale, safeMaxScale), maxSafeScale);
+  const endScale   = Math.min(rand(safeMinScale, safeMaxScale), maxSafeScale);
 
   el.style.transition = 'none';
 
@@ -1816,7 +1842,20 @@ function showNextPresSlide(){
 
   const it = pick(items);
 
-  prsImg.onload = ()=> animateKen(prsImg);
+  // Обработчик загрузки изображения с проверкой размеров
+  prsImg.onload = ()=> {
+    // Дополнительная проверка: убеждаемся, что изображение загружено полностью
+    if(prsImg.complete && prsImg.naturalWidth > 0 && prsImg.naturalHeight > 0){
+      animateKen(prsImg);
+    } else {
+      // Если изображение еще не полностью загружено, ждем еще немного
+      setTimeout(() => {
+        if(prsImg.complete && prsImg.naturalWidth > 0 && prsImg.naturalHeight > 0){
+          animateKen(prsImg);
+        }
+      }, 100);
+    }
+  };
 
   prsImg.src = it.raw || it.path;
 
