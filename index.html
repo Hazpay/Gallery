@@ -14,7 +14,7 @@
 
     :root{
 
-      --bg:#0d1117; --fg:#242424; --muted:#9aa7bb;
+      --bg:#0d1117; --fg:#eaf1fa; --muted:#9aa7bb;
 
       --line:rgba(255,255,255,.1); --acc:#60a5fa;
 
@@ -483,6 +483,11 @@
     
     .info-panel .glass{
       margin-top:12px;
+      /* Адаптивный фон для лучшей читаемости на любом фоне */
+      background:rgba(15,20,30,.92);
+      backdrop-filter:blur(28px) saturate(200%);
+      border:1px solid rgba(255,255,255,.25);
+      box-shadow:0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
     }
 
     .glass{
@@ -506,10 +511,47 @@
     #v-meta {
       line-height:1.6;
       font-size:13px;
+      color:#eaf1fa;
+      text-shadow:0 1px 3px rgba(0,0,0,.5);
     }
     
     #v-meta div:first-child {
       margin-top:0;
+    }
+    
+    #v-meta div {
+      color:#eaf1fa;
+      text-shadow:0 1px 3px rgba(0,0,0,.5);
+    }
+    
+    #v-title {
+      color:#ffffff;
+      font-weight:600;
+      text-shadow:0 2px 4px rgba(0,0,0,.6);
+    }
+    
+    /* Адаптивность для светлой темы */
+    @media (prefers-color-scheme: light) {
+      .info-panel .glass {
+        background:rgba(255,255,255,.95);
+        border:1px solid rgba(0,0,0,.15);
+        box-shadow:0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.8);
+      }
+      
+      .info-panel #v-title {
+        color:#0b0e14;
+        text-shadow:0 1px 2px rgba(255,255,255,.8);
+      }
+      
+      .info-panel #v-meta {
+        color:#2a2f3a;
+        text-shadow:0 1px 2px rgba(255,255,255,.6);
+      }
+      
+      .info-panel #v-meta div {
+        color:#2a2f3a;
+        text-shadow:0 1px 2px rgba(255,255,255,.6);
+      }
     }
 
     .btn{
