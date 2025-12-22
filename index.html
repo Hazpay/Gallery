@@ -1798,7 +1798,7 @@ function getMaxSafeScale(img){
   // Отступ 10% от границ экрана (20% общее уменьшение доступного пространства)
   const paddingPercent = 0.1; // 10%
   
-  let scaleWithPadding, scaleWithoutPadding;
+  let scaleWithPadding;
   
   if(isWidthLarger){
     // Если ширина больше - применяем отступ 10% к ширине viewport
@@ -1811,30 +1811,37 @@ function getMaxSafeScale(img){
   }
   
   // Проверяем, что при таком масштабе изображение не обрезается по другому размеру
-  // Рассчитываем масштаб без отступа для обоих размеров (гарантия отсутствия обрезки)
-  const scaleForWidth = viewportWidth / imgWidth;
-  const scaleForHeight = viewportHeight / imgHeight;
-  scaleWithoutPadding = Math.min(scaleForWidth, scaleForHeight);
+  // Рассчитываем, какой размер будет у изображения при масштабе scaleWithPadding
+  const scaledWidth = imgWidth * scaleWithPadding;
+  const scaledHeight = imgHeight * scaleWithPadding;
   
-  // Берем минимальный из масштабов, чтобы гарантировать отсутствие обрезки
-  // Это означает: стремимся к отступу 10%, но не обрезаем ни при каких обстоятельствах
-  const maxSafeScale = Math.min(scaleWithPadding, scaleWithoutPadding);
+  // Если при масштабе с отступом изображение не помещается по другому размеру,
+  // используем масштаб без отступа, чтобы гарантировать отсутствие обрезки
+  let maxSafeScale;
+  if(scaledWidth > viewportWidth || scaledHeight > viewportHeight){
+    // Изображение обрезается - используем масштаб без отступа
+    const scaleForWidth = viewportWidth / imgWidth;
+    const scaleForHeight = viewportHeight / imgHeight;
+    maxSafeScale = Math.min(scaleForWidth, scaleForHeight);
+  } else {
+    // Изображение помещается - используем масштаб с отступом
+    maxSafeScale = scaleWithPadding;
+  }
   
-  // Ограничиваем максимальным значением из констант
-  return Math.min(maxSafeScale, MAX_SCALE);
+  // НЕ ограничиваем MAX_SCALE для базового размера - это нужно для правильного отображения
+  // маленьких изображений. MAX_SCALE используется только для анимации zoom
+  return maxSafeScale;
 }
 
 function animateKen(el){
 
-  // Рассчитываем максимальный безопасный масштаб
-  const maxSafeScale = getMaxSafeScale(el);
+  // Рассчитываем базовый безопасный масштаб (с отступом 10% от большего размера)
+  const baseScale = getMaxSafeScale(el);
   
-  // Ограничиваем startScale и endScale максимальным безопасным масштабом
-  const safeMinScale = Math.min(MIN_SCALE, maxSafeScale);
-  const safeMaxScale = maxSafeScale;
-  
-  const startScale = Math.min(rand(safeMinScale, safeMaxScale), maxSafeScale);
-  const endScale   = Math.min(rand(safeMinScale, safeMaxScale), maxSafeScale);
+  // Анимация zoom относительно базового масштаба
+  // MIN_SCALE и MAX_SCALE применяются как множители к базовому масштабу
+  const startScale = baseScale * rand(MIN_SCALE, MAX_SCALE);
+  const endScale   = baseScale * rand(MIN_SCALE, MAX_SCALE);
 
   el.style.transition = 'none';
 
