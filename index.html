@@ -741,6 +741,11 @@
         max-width:calc(100% - 24px);
         max-height:calc(100% - 24px);
       }
+      
+      /* Скрываем кнопки стрелок на мобильных */
+      .arrow{
+        display:none;
+      }
     }
     
     @media(max-width:480px){
@@ -1637,7 +1642,47 @@ document.addEventListener('keydown',(e)=>{
   else if(e.key==='Escape') closeViewer();
 });
 
+/* === Swipe навигация для мобильных устройств === */
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+const SWIPE_THRESHOLD = 50; // Минимальное расстояние для распознавания свайпа
 
+const slideElement = document.querySelector('.slide');
+if(slideElement) {
+  slideElement.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, {passive: true});
+
+  slideElement.addEventListener('touchend', (e) => {
+    if(!viewer.classList.contains('active')) return;
+    
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    
+    const deltaX = touchStartX - touchEndX;
+    const deltaY = touchStartY - touchEndY;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+    
+    // Определяем, это горизонтальный или вертикальный свайп
+    // Если горизонтальный свайп больше вертикального, обрабатываем как навигацию
+    if(absDeltaX > absDeltaY && absDeltaX > SWIPE_THRESHOLD) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if(deltaX > 0) {
+        // Свайп влево - следующее изображение
+        next();
+      } else {
+        // Свайп вправо - предыдущее изображение
+        prev();
+      }
+    }
+  }, {passive: false});
+}
 
 /* === Сворачивание меню (как было) === */
 
